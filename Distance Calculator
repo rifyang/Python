@@ -1,0 +1,67 @@
+import math
+import requests
+
+
+def get_coordinates(location, api_key):
+    """
+    Fetches the latitude and longitude of a location using the OpenCage Geocoder API.
+    """
+    url = f"https://api.opencagedata.com/geocode/v1/json"
+    params = {
+        'q': location,
+        'key': api_key
+    }
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+        if data['results']:
+            lat = data['results'][0]['geometry']['lat']
+            lng = data['results'][0]['geometry']['lng']
+            return lat, lng
+        else:
+            print(f"No results found for '{location}'.")
+            return None, None
+    else:
+        print(f"Error: {response.status_code}")
+        return None, None
+
+
+def haversine(lat1, lng1, lat2, lng2):
+    """
+    Calculate the great-circle distance between two points on the Earth using the Haversine formula.
+    """
+    # Convert latitude and longitude from degrees to radians
+    lat1, lng1, lat2, lng2 = map(math.radians, [lat1, lng1, lat2, lng2])
+
+    # Haversine formula
+    dlat = lat2 - lat1
+    dlon = lng2 - lng1
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    # Radius of Earth in kilometers
+    R = 6371.0
+    distance = R * c
+    return distance
+
+
+if __name__ == "__main__":
+    # Get your API key from OpenCage Geocoder
+    api_key = "Your_API_Key"
+
+    print("Enter the details for the two places.")
+    place1 = input("Enter the name or address of Place 1: ")
+    place2 = input("Enter the name or address of Place 2: ")
+
+    print("\nFetching coordinates...")
+    lat1, lng1 = get_coordinates(place1, api_key)
+    lat2, lng2 = get_coordinates(place2, api_key)
+
+    if lat1 is not None and lng1 is not None and lat2 is not None and lng2 is not None:
+        distance = haversine(lat1, lng1, lat2, lng2)
+        print(f"The distance between {place1} and {place2} is {distance:.2f} kilometers.")
+    else:
+        print("Failed to fetch coordinates for one or both locations.")
+
+
