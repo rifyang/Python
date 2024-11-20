@@ -1,0 +1,42 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+
+# Define parameters
+k0_scenario2 = 0.003  # Given rate constant
+R2_forth = k0_scenario2 * np.array([
+    [1,  0,  0, -1,  0],
+    [-1, 1,  0,  0,  0],
+    [0, -1,  1,  0,  0],
+    [0,  0,  0,  1, -1],
+    [0,  0, -1,  0,  1]
+])
+
+Y0 = np.array([1, 0, 0, 0, 0])  # Initial condition
+tspan = (1, 1000)  # Time span in ms
+
+# Define the matrix ODE function
+def matrix_ode(t, Y):
+    return -R2_forth @ Y
+
+# Solve the ODE using solve_ivp
+solution = solve_ivp(matrix_ode, tspan, Y0, t_eval=np.linspace(tspan[0], tspan[1], 500))
+
+# Extract the results
+t = solution.t
+Y = solution.y
+
+# Plot the results
+plt.figure()
+for i in range(Y.shape[0]):
+    plt.plot(t, Y[i], label=f'Y{i+1}')
+plt.xlabel('Time (ms)')
+plt.ylabel('Distribution')
+plt.title('Solution of dY/dt = -R2_forth * Y')
+plt.legend()
+plt.grid()
+plt.show()
+
+# Display final concentrations at t = 1000 ms
+print('Final concentrations at t = 1000 ms:')
+print(Y[:, -1])
